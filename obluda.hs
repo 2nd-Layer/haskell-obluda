@@ -1,11 +1,12 @@
--- obluda 
+-- obluda
 -- written in January 2007 by Anicka Bernathova <anicka@anicka.net>
 
-module Main where 
+module Main where
 
-import IO
-import Random
+import Control.Exception
 import System.Environment
+import System.IO
+import System.Random
 
 -- type for representation of AVL tree
 -- Nil or (left subtree, key, value, balance, right subtree)
@@ -27,54 +28,54 @@ plus n | n>0 = n
        | True = 0
 
 --left rotation of AVL tree
-rl :: BTree a b -> BTree a b 
-rl (Tree l v val d p) = Tree (Tree l v val r pl) pv pval s pp 
+rl :: BTree a b -> BTree a b
+rl (Tree l v val d p) = Tree (Tree l v val r pl) pv pval s pp
                       where (Tree pl pv pval pd pp) = p
-	       		    r = d - 1 - plus pd
+                            r = d - 1 - plus pd
                             s = - 1 + pd + r - plus r
 --right rotation
-rr :: BTree a b -> BTree a b 
-rr (Tree l v val d p) = Tree ll lv lval s (Tree lp v val r p)	
+rr :: BTree a b -> BTree a b
+rr (Tree l v val d p) = Tree ll lv lval s (Tree lp v val r p)
                   where (Tree ll lv lval ld lp) = l
-			r = d - ld + 1 + plus ld 
-			s = 1 + ld + plus r	 
---double rotations 
-rlrr :: BTree a b -> BTree a b 
+                        r = d - ld + 1 + plus ld
+                        s = 1 + ld + plus r
+--double rotations
+rlrr :: BTree a b -> BTree a b
 rlrr (Tree l v val d p) = rr (Tree (rl l) v val d p)
 
-rrrl :: BTree a b -> BTree a b 
+rrrl :: BTree a b -> BTree a b
 rrrl (Tree l v val d p) = rl (Tree l v val d (rr p))
 
 insert :: Ord a => a -> BTree a Integer -> (BTree a Integer, Integer)
 insert n Nil = ((Tree Nil n 1 0 Nil),1)
-insert n (Tree l v val d p)     | n==v = ((Tree l v (val+1) d p),0) 
+insert n (Tree l v val d p)     | n==v = ((Tree l v (val+1) d p),0)
                                 | n<v = if s==0 then ((Tree t v val d p),0)
-				         else case d of
-				              1 -> ((Tree t v val 0 p),0)
-				              0 -> ((Tree t v val (-1) p),1)
-				              -1 -> (t2,0)
-			        | n>v = if j==0 then ((Tree l v val d i),0) 
-			        	    else case d of
-				        	 1 -> (i2,0)
-					         0 -> ((Tree l v val 1 i),1)
-					         -1 -> ((Tree l v val 0 i),0)
-			        where (t, s)   = insert n l
-				      td     = getD t
-				      t2     = if td == -1 then rr (Tree t v val (d-1) p)
+                                         else case d of
+                                              1 -> ((Tree t v val 0 p),0)
+                                              0 -> ((Tree t v val (-1) p),1)
+                                              -1 -> (t2,0)
+                                | n>v = if j==0 then ((Tree l v val d i),0)
+                                            else case d of
+                                                 1 -> (i2,0)
+                                                 0 -> ((Tree l v val 1 i),1)
+                                                 -1 -> ((Tree l v val 0 i),0)
+                                where (t, s)   = insert n l
+                                      td     = getD t
+                                      t2     = if td == -1 then rr (Tree t v val (d-1) p)
                                              else rlrr(Tree t v val (d-1) p)
                                       (i, j)  = insert n p
-				      id      = getD i
-				      i2      = if id == 1 then rl (Tree l v val (d+1) i)
-						else rrrl (Tree l v val (d+1) i) 
+                                      id      = getD i
+                                      i2      = if id == 1 then rl (Tree l v val (d+1) i)
+                                                else rrrl (Tree l v val (d+1) i)
 
-ins :: Ord a => a -> BTree a Integer -> BTree a Integer 
+ins :: Ord a => a -> BTree a Integer -> BTree a Integer
 ins n t = tt
         where (tt,_)= insert n t
 
 --parses the input string and feeds our tree
 savestring :: String -> (Char,Char) -> BTree String Integer -> BTree String Integer
 savestring (z:xs) (x,y) t | (z /= ' ') = savestring xs (y,z) $! (ins [x,y,z] t)
-			  | True = savestring xs (' ',' ') $! (ins [x,y,z] t)
+                          | True = savestring xs (' ',' ') $! (ins [x,y,z] t)
 savestring [] (x,y) t = ins [x,y,' '] t
 
 straight :: BTree a b -> [(a, b)]
@@ -107,9 +108,9 @@ getnext Nil _ _ temp = temp
 getnext t s prob temp | s<str = getnext l s prob temp
                       | s>str = getnext p s prob temp
                       | s==str = (if prob<fl then getnext l s prob char else getnext p s prob temp)
-                      where Tree l (str,fl) char _ p = t  
+                      where Tree l (str,fl) char _ p = t
 
---returns a random word (length can be very long) 
+--returns a random word (length can be very long)
 getword :: BTree (String,Float) Char -> String -> String -> IO (String)
 getword t prefix ctxt = do
             prob <- randomRIO (0::Float,1)
@@ -121,13 +122,13 @@ getword t prefix ctxt = do
 genwords :: Integer -> BTree (String,Float) Char -> IO ()
 genwords number tree = do
                        c <- getword tree [] "  "
-                       let d = length c 
-                         in if (d < 100) && (d>5) then do 
+                       let d = length c
+                         in if (d < 100) && (d>5) then do
                                                        putStrLn c
                                                        if number>1 then genwords (number-1) tree
                                                                    else putStr ""
-                                                  else genwords number tree 
-dump :: String -> IO () 
+                                                  else genwords number tree
+dump :: String -> IO ()
 dump path = bracket
           (openFile path ReadMode)
           hClose
@@ -137,31 +138,31 @@ dump path = bracket
             )
 
 rfdump :: String -> IO (BTree (String,Float) Char)
-rfdump string  = do 
+rfdump string  = do
                  let c=(read string)
                    in return $! (mktree c)
 
 rf :: String -> IO (BTree (String,Float) Char)
-rf cont = return $! (mktree (probm (straight (savestring cont (' ',' ') Nil)))) 
+rf cont = return $! (mktree (probm (straight (savestring cont (' ',' ') Nil))))
 
 action :: String -> Integer ->Integer -> IO ()
 action path mode number = do
                             h <- (openFile path ReadMode)
                             cont <- (hGetContents h)
-			    tree <- (if mode==0 then rf else rfdump) cont 
+                            tree <- (if mode==0 then rf else rfdump) cont
                             hClose h
                             genwords number tree
 
 usage :: String
-usage = "Usage: obluda -c corpus_file number_of_lines\n" 
-       ++"              -r dump_file number_of_lines\n" 
+usage = "Usage: obluda -c corpus_file number_of_lines\n"
+       ++"              -r dump_file number_of_lines\n"
        ++"              -d corpus_file"
 
 main :: IO ()
 main = getArgs >>= \argv ->
-       case argv of 
+       case argv of
         ["-c",filename,number] -> action filename 0 (read number)
         ["-r",filename,number] -> action filename 1 (read number)
         ["-d",filename] -> dump filename
-        _ -> putStrLn usage 
+        _ -> putStrLn usage
 
