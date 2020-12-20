@@ -1,0 +1,27 @@
+obluda - random name generator
+
+This little utility serves as a name generator: when fed with statistical data 
+about some language it outputs list of random names looking like that language.
+
+How to compile
+As this is a Haskell program, you should have some working Haskell 
+implementation installed - preferably GHC, you can get it at 
+http://www.haskell.org/ghc
+
+How to use
+The generator can be fed either with a corpus file or with a dump 
+file. Corpus file should contain only words of given language
+divided by spaces.
+
+Usage: obluda -c corpus_file number_of_lines
+              -r dump_file number_of_lines
+              -d corpus_file
+
+where "obluda -[rc] filename n" generates n names of output, 
+"obluda -d filename" outputs dump of corpus file to stdout.
+Dumps of several languages come with the program for immediate testing.
+
+How to distribute
+Feel free to distribute this file in compliance with the GNU GPL version 2.
+
+Enjoy.
