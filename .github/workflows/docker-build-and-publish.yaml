@@ -45,7 +45,7 @@ jobs:
           context: .
           file: ./Dockerfile
           platforms: linux/amd64
-          push: true
+          push: false
           tags: |
             ghcr.io/user/obluda:latest
 
